@@ -76,9 +76,13 @@ npm run typecheck
 npm test
 npm run build
 npm run audit:high
+npm audit
 ```
 
 Lint, typecheck, tests, and build are mandatory blockers before merge. Audit may temporarily be report-only until the dedicated dependency-hardening PR lands, but audit failures must still be reported honestly.
+Dependency changes must run lint, typecheck, tests, build, and audit. Audit failures must be reported honestly and never suppressed.
+Do not use forced dependency upgrades without explicit justification.
+Branch protection and required-check changes need evidence before being called complete.
 
 ## Required Codex output format
 

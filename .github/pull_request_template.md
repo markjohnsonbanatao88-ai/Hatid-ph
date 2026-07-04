@@ -12,7 +12,7 @@ Task URL:
 
 Low / Medium / High / Production Critical
 
-## Scope
+## Scope / bounded context
 
 Check all that apply:
 
@@ -27,43 +27,83 @@ Check all that apply:
 - [ ] Safety / compliance
 - [ ] CI / tooling
 - [ ] Docs / architecture
+- [ ] Infrastructure
+- [ ] AI
+
+## What changed
+
+-
+
+## What did not change
+
+- No product behavior changes unless explicitly stated.
+- No production-readiness claim unless a separate production-readiness review proves otherwise.
+
+## Tests run
+
+- [ ] npm run lint
+- [ ] npm run typecheck
+- [ ] npm test
+- [ ] npm run build
+- [ ] npm run audit:high
+- [ ] npm audit
+- [ ] npm run db:test, when Supabase migrations/RLS/RPC/database behavior changes are touched
+
+## Audit status
+
+Report the exact `npm run audit:high` and plain `npm audit` results.
+
+Audit output must not be suppressed.
+
+## Architecture compliance
+
+- [ ] Checked against the Hatid architecture baseline
+- [ ] No violation of frozen production boundaries
+- [ ] ADR linked if architecture changes
+
+ADR link:
 
 ## Guardrails
 
-- [ ] I did not redesign the canonical Hatid UI without approval.
-- [ ] I did not add fake live money movement, wallet balances, payouts, or payment success states.
-- [ ] I did not add client-authoritative trip, dispatch, driver availability, wallet, payout, KYC, or compliance logic.
-- [ ] I did not reintroduce Firebase app dependencies.
-- [ ] I did not expose server-only secrets to client code.
-- [ ] I confirm this PR does not rely on mock data as production truth.
+Do not claim production readiness for mocked behavior.
 
-## Validation
+Confirm:
 
-Paste the commands run and results:
+- [ ] No secrets committed
+- [ ] No generated files committed
+- [ ] No client-authoritative critical state added
+- [ ] No fake payment/wallet/payout behavior added
+- [ ] No unauthorized dispatch/admin/safety backend added
+- [ ] No production-readiness claim for mocked behavior
 
-```bash
-npm ci
-npm run typecheck
-npm test
-npm run build
-```
+## AI disclosure
 
-## Architecture impact
+AI assisted: Yes / No
 
-- Does this change require an ADR? Yes / No
-- Does this change touch Sprint 0B foundation? Yes / No
-- Does this change affect production-readiness claims? Yes / No
+If yes:
 
-Explain any yes answers here.
-
-## Screenshots / logs
-
-Add screenshots for UI changes and logs for build or migration changes.
+- Tool:
+- Scope generated:
+- Validation performed:
 
 ## Deployment impact
 
-Explain deployment impact, environment variables, migrations, and rollback plan.
+Describe deployment impact, environment variables, migrations, and preview/deployment risk.
+
+Do not claim branch protection is enabled without proof from repository settings.
+
+## Rollback / roll-forward plan
+
+Describe the exact rollback or roll-forward path.
 
 ## Remaining risks
 
-List known risks and unresolved questions.
+-
+
+## Unresolved questions
+
+-
+
+## Production readiness
+
+Still prototype only unless a separate production-readiness review proves otherwise.

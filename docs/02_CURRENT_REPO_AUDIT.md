@@ -14,7 +14,8 @@ The repo has a Next.js UI shell and client-facing prototype infrastructure, but 
 - The test script was previously Unix-only because it used `rm -rf`; this PR changes it to `rimraf`.
 - The build script was previously environment-shell dependent; this PR changes it to `cross-env NODE_ENV=production`.
 - CI previously did not provide the requested Phase 0 shape; this PR makes lint, typecheck, tests, and build hard blockers.
-- `npm run audit:high` currently exits 0 at the high threshold, but `npm audit` still reports 28 moderate vulnerabilities. Dependency hardening must be handled in a separate PR.
+- Dependency hardening has reduced the audit count from 28 moderate vulnerabilities to 25 moderate vulnerabilities. `npm run audit:high` still exits 0 at the high threshold, but plain `npm audit` remains nonzero and must be tracked before production readiness.
+- Branch protection and required checks are documented in `docs/28_BRANCH_PROTECTION_AND_REQUIRED_CHECKS.md`, but this documentation does not prove GitHub settings are enabled.
 
 ## What is real
 
@@ -47,11 +48,17 @@ Firebase may support prototype flows while the repo remains in this phase. It do
 
 ## Dependency audit status
 
-`npm audit --audit-level=high` must be run and reported honestly. In this PR it exits 0 and reports 28 moderate vulnerabilities, with no high or critical failure at the configured threshold.
+`npm audit --audit-level=high` must be run and reported honestly. The current dependency-hardening pass exits 0 at the high threshold and reports 25 moderate vulnerabilities, with no high or critical failure at the configured threshold.
 
-The reported moderate vulnerabilities include `js-yaml`, `postcss` via `next`, and `uuid` through Genkit/Google dependency chains. They are not fixed in this PR because dependency hardening belongs in a dedicated follow-up.
+The remaining moderate vulnerabilities are in the `uuid` advisory family through Genkit and Google dependency chains. The earlier `js-yaml` and `postcss` findings were removed by safe lockfile updates and a PostCSS override.
 
-Dependency hardening belongs in a dedicated follow-up PR.
+The remaining `uuid` chain is deferred because npm reports no non-forced fix and a major transitive override would need a dedicated, fully tested dependency PR.
+
+Remaining moderate vulnerabilities block production readiness until they are resolved or explicitly accepted through security review.
+
+## Governance status
+
+Branch protection requirements are documented, including required PR review, required status checks, force-push blocking, branch deletion blocking, and conversation resolution. This repo audit does not claim those GitHub settings are enabled; proof from repository settings is still required.
 
 ## Dangerous if left ambiguous
 
@@ -82,8 +89,9 @@ Dependency hardening belongs in a dedicated follow-up PR.
 2. Keep README and audit docs prototype-only.
 3. Keep lint, typecheck, tests, and build as hard quality gates.
 4. Keep generated test output ignored.
-5. Keep dependency audit visible until a dedicated hardening PR resolves it.
-6. Do not add product behavior under repo-cleanup work.
+5. Keep dependency audit visible until remaining moderate vulnerabilities are resolved or explicitly accepted.
+6. Keep branch protection settings documented and verify them in GitHub before claiming governance completion.
+7. Do not add product behavior under repo-cleanup work.
 
 ## Rule
 
