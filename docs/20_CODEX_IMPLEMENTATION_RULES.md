@@ -15,7 +15,7 @@ These rules are mandatory for Codex or any AI/code agent working in Hatid.
 9. Keep patches small and reviewable.
 10. Add or update tests with behavior changes.
 11. Preserve existing routes unless explicitly instructed otherwise.
-12. Report build, typecheck, lint, and test status honestly.
+12. Report build, typecheck, lint, test, and audit status honestly.
 
 ## Required reading before coding
 
@@ -66,6 +66,20 @@ Trip state machine only.
 
 Only proceed if previous phase acceptance criteria are met.
 
+## Required checks
+
+Run these when available:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run audit:high
+```
+
+Lint, typecheck, tests, and build are mandatory blockers before merge. Audit may temporarily be report-only until the dedicated dependency-hardening PR lands, but audit failures must still be reported honestly.
+
 ## Required Codex output format
 
 Every Codex run must report:
@@ -76,7 +90,9 @@ Every Codex run must report:
 - commands run
 - typecheck result
 - lint result
+- test result
 - build result
+- audit result
 - known risks
 - next recommended step
 

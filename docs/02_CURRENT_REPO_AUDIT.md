@@ -4,105 +4,87 @@
 
 Hatid is a prototype, not an MVP, beta, or production-ready transport platform.
 
-The current repo has a polished-looking Next.js/Firebase shell, but the actual transport, dispatch, payment, payout, fare, safety, and admin authority are not production systems yet. The app can demo a concept. It cannot safely operate live rides, driver payouts, wallets, or regulated transport workflows.
+The repo has a Next.js UI shell and client-facing prototype infrastructure, but it does not have authoritative production systems for transport, dispatch, payment, wallet, payout, safety, admin, or compliance operations. UI completeness must not be treated as operational readiness.
 
-## Observed stack
+## Current repo signals
 
-- Next.js 15 app router
-- React 19
-- Firebase client SDK
-- Firebase Auth
-- Firestore client SDK
-- Genkit/Google GenAI files
-- Tailwind/Radix UI components
-- Firebase App Hosting config
-
-## Immediate repo signals
-
-- `package.json` still uses the starter name `nextn`.
-- `README.md` is still Firebase Studio starter copy unless updated after this audit.
-- `next.config.ts` ignores TypeScript and ESLint build failures. That must be removed before production claims.
-- Firebase client config is committed in `src/firebase/config.ts`. Public Firebase config is not automatically a secret, but key restriction, App Check, and environment discipline are still required.
+- `package.json` is now named `hatid`.
+- `README.md` has been rewritten and honestly says Hatid is prototype-only.
+- `next.config.ts` no longer suppresses TypeScript or ESLint build failures.
+- The test script was previously Unix-only because it used `rm -rf`; this PR changes it to `rimraf`.
+- The build script was previously environment-shell dependent; this PR changes it to `cross-env NODE_ENV=production`.
+- CI previously did not provide the requested Phase 0 shape; this PR makes lint, typecheck, tests, and build hard blockers.
+- `npm run audit:high` currently exits 0 at the high threshold, but `npm audit` still reports 28 moderate vulnerabilities. Dependency hardening must be handled in a separate PR.
 
 ## What is real
 
 - Next.js app shell.
-- Firebase Auth integration foundation.
-- Auth guard pattern.
-- User profile page foundation.
-- Driver dashboard UI foundation.
-- Payment/wallet page UI foundation.
-- Firestore rules file with serious intent.
-- Genkit/AI flow files.
-- Some Firestore read/write helpers.
+- Prototype rider and driver UI surfaces.
+- Firebase/Firestore client-facing prototype infrastructure.
+- Supabase project files exist in the repository, but they are not an authoritative runtime on `main`.
+- Trip state-machine source and tests exist as implementation foundation.
+- CI quality gates are being made explicit by this PR.
 
-## What is mock/demo/fake
+## What is not real yet
 
-- Ride request defaults are hardcoded.
-- Ride options/prices/ETAs are hardcoded.
-- Driver matching is simulated with random acceptance.
-- Confirmed driver is fake/static.
-- Map is placeholder imagery plus SVG animation, not real map/routing/location.
-- Payment success is simulated.
-- Wallet/cash-out behavior is simulated.
-- Driver online/offline state is local only.
-- Weekly earnings are randomly generated.
-- Trip history is hardcoded.
-- AI recommendation components use mock data rather than live user/trip context.
+- No authoritative backend exists.
+- No PostgreSQL/PostGIS runtime exists.
+- No Cloud Run service exists.
+- No real dispatch exists.
+- No production driver availability or location ingest service exists.
+- No live payment provider integration exists.
+- No wallet, stored-value, cash-in, cash-out, payout, or reconciliation service exists.
+- No production admin backend exists.
+- No production safety/SOS backend exists.
+- No real maps provider wiring, routing, or fare engine exists.
+- No production audit-log authority exists.
+
+## Firebase and Firestore boundary
+
+Firestore remains client-facing prototype infrastructure. It must not be treated as the production source of truth for trips, dispatch, driver availability, payment state, wallet balances, payouts, admin overrides, onboarding approvals, safety incidents, or compliance records.
+
+Firebase may support prototype flows while the repo remains in this phase. It does not make Hatid production-ready.
+
+## Dependency audit status
+
+`npm audit --audit-level=high` must be run and reported honestly. In this PR it exits 0 and reports 28 moderate vulnerabilities, with no high or critical failure at the configured threshold.
+
+The reported moderate vulnerabilities include `js-yaml`, `postcss` via `next`, and `uuid` through Genkit/Google dependency chains. They are not fixed in this PR because dependency hardening belongs in a dedicated follow-up.
+
+Dependency hardening belongs in a dedicated follow-up PR.
 
 ## Dangerous if left ambiguous
 
 - Any UI copy implying real driver matching.
-- Any UI copy implying real card charging/payment success.
-- Any wallet balance/cash-out flow that looks operational.
-- Any driver earning or payout screen not clearly marked demo/mock.
-- Any client-side trip completion or payment completion action being treated as production behavior.
-- Any build config that suppresses lint or TypeScript failures.
-
-## Missing production systems
-
-- No authoritative backend trip service.
-- No production trip state machine.
-- No real dispatch service.
-- No real driver availability/location ingest service.
-- No real driver onboarding/verification backend.
-- No real payment provider integration.
-- No double-entry ledger.
-- No payout/reconciliation service.
-- No production admin console backend.
-- No safety/SOS incident backend.
-- No real maps/geocoding/routing/fare engine.
-- No audit-log authority.
-- No staging/prod separation documentation.
-- No secrets/key management plan.
-- No Firestore rules tests observed.
-- No production data-retention/privacy plan implemented.
+- Any UI copy implying real card charging, wallet movement, payout, or settlement.
+- Any client-side trip completion, payment completion, wallet balance, or driver availability action being treated as production behavior.
+- Any audit failure hidden by CI or final reporting.
+- Any docs claiming MVP, beta, production readiness, live dispatch, live payments, wallet, payouts, admin operations, or safety readiness.
 
 ## Production-readiness score
 
 | Area | Score | Reason |
 |---|---:|---|
-| UI shell | 65/100 | Looks usable as demo UI. |
-| Auth foundation | 40/100 | Firebase Auth exists, but flow correctness and role model need work. |
-| Trip authority | 5/100 | Mostly client/demo state. |
+| UI shell | 65/100 | Useful for prototype exploration, not operational proof. |
+| Auth/profile foundation | 40/100 | Client-facing foundation exists, but production authority and role controls are incomplete. |
+| Trip authority | 10/100 | State-machine foundation exists, but no authoritative backend runtime exists. |
 | Dispatch | 0/100 | No real dispatch engine. |
-| Payments/wallet | 5/100 | UI only; no provider, ledger, webhooks, or reconciliation. |
-| Driver operations | 10/100 | Dashboard only; no real onboarding/availability. |
-| Safety | 5/100 | Buttons/UI only; no real incident system. |
-| Admin/ops | 5/100 | No real operations console. |
-| Compliance/privacy | 15/100 | Some Firestore-rule intent, but no governance implementation. |
-| Production infrastructure | 20/100 | Basic hosting config, but no backend/service boundary. |
+| Payments/wallet | 0/100 | No live provider, ledger, wallet, payout, webhook, or reconciliation service. |
+| Driver operations | 10/100 | Prototype UI and planning only; no complete operational backend. |
+| Safety | 5/100 | No production incident backend. |
+| Admin/ops | 5/100 | No production admin backend. |
+| Compliance/privacy | 15/100 | Planning exists; production implementation is incomplete. |
+| Production infrastructure | 20/100 | Frontend/build foundation exists; no authoritative backend runtime is operating. |
 
 ## Phase 0 cleanup targets
 
-1. Rename package from `nextn` to `hatid` or `hatid-core`.
-2. Rewrite README away from Firebase Studio starter copy.
-3. Remove TypeScript/ESLint build suppression.
-4. Rename/move mock data into `/src/lib/demo`.
-5. Replace fake payment wording with demo-only copy.
-6. Add docs/source package before further implementation.
-7. Add explicit production boundary types for trips, payments, ledger, dispatch, and driver verification.
+1. Keep package identity honest.
+2. Keep README and audit docs prototype-only.
+3. Keep lint, typecheck, tests, and build as hard quality gates.
+4. Keep generated test output ignored.
+5. Keep dependency audit visible until a dedicated hardening PR resolves it.
+6. Do not add product behavior under repo-cleanup work.
 
 ## Rule
 
-No future code should make the current demo flows look production-real until backend authority, ledger, dispatch, and compliance systems exist.
+No future code should make the current prototype flows look production-real until backend authority, ledger, dispatch, maps, safety, admin, and compliance systems exist.
