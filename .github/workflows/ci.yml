@@ -38,6 +38,51 @@ jobs:
       - name: Build
         run: npm run build
 
+  database:
+    name: Supabase database validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Docker diagnostics
+        run: |
+          docker version
+          docker compose version
+
+      - name: Supabase diagnostics
+        run: |
+          supabase --version
+          supabase status || true
+
+      - name: Start local Supabase stack
+        run: supabase start
+
+      - name: Apply migrations to local database
+        run: supabase db reset
+
+      - name: Run database tests
+        run: npm run db:test
+
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
+
   audit:
     name: Dependency audit visibility
     runs-on: ubuntu-latest

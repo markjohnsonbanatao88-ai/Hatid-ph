@@ -22,8 +22,12 @@ The following checks must be required before merge:
 
 - Hatid Quality Gates
 - CI
+- CI / Full quality gate
+- CI / Supabase database validation
 - Verify
 - Vercel - hatid-ph, if Vercel remains the deployment preview provider
+
+Supabase database validation is a hard required check for database-governance work. It must run before merge when migrations, RLS, RPCs, or database behavior are touched.
 
 ## Required local commands before PR review
 
@@ -33,6 +37,7 @@ The following checks must be required before merge:
 - npm run build
 - npm run audit:high
 - npm audit
+- npm run db:test, when Supabase migrations/RLS/RPC/database behavior changes are touched
 
 ## Evidence required before closing branch-protection work
 
@@ -43,7 +48,8 @@ Attach proof from GitHub settings or branch protection rules showing:
 - force push disabled
 - branch deletion disabled
 - conversation resolution enabled
+- CI database validation required, if GitHub exposes job-level required checks separately
 
 ## Production readiness
 
-Branch protection improves repo safety but does not make Hatid production-ready.
+Branch protection and database CI improve repo safety but do not make Hatid production-ready.

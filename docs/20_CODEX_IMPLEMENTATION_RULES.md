@@ -15,7 +15,7 @@ These rules are mandatory for Codex or any AI/code agent working in Hatid.
 9. Keep patches small and reviewable.
 10. Add or update tests with behavior changes.
 11. Preserve existing routes unless explicitly instructed otherwise.
-12. Report build, typecheck, lint, test, and audit status honestly.
+12. Report build, typecheck, lint, test, database test, and audit status honestly.
 
 ## Required reading before coding
 
@@ -39,6 +39,7 @@ Allowed:
 - mock/demo labeling
 - README cleanup
 - build config honesty
+- CI and required-check hardening
 - safe file organization
 
 Not allowed:
@@ -77,12 +78,17 @@ npm test
 npm run build
 npm run audit:high
 npm audit
+npm run db:test
 ```
 
-Lint, typecheck, tests, and build are mandatory blockers before merge. Audit may temporarily be report-only until the dedicated dependency-hardening PR lands, but audit failures must still be reported honestly.
+Lint, typecheck, tests, build, and database validation are mandatory blockers before merge when available. `npm run db:test` is mandatory for any PR that touches Supabase migrations, RLS, RPCs, database behavior, or server-owned state.
+
+Audit may temporarily be report-only while moderate findings remain tracked, but audit failures must still be reported honestly.
+
 Dependency changes must run lint, typecheck, tests, build, and audit. Audit failures must be reported honestly and never suppressed.
 Do not use forced dependency upgrades without explicit justification.
 Branch protection and required-check changes need evidence before being called complete.
+Database validation failures must not be hidden with `|| true`, skipped migrations, weakened tests, or mock pass conditions.
 
 ## Required Codex output format
 
@@ -96,6 +102,7 @@ Every Codex run must report:
 - lint result
 - test result
 - build result
+- database test result, when database validation is available or database behavior is touched
 - audit result
 - known risks
 - next recommended step
