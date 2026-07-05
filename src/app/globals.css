@@ -82,3 +82,128 @@
     }
   }
 }
+
+/* ==========================================================================
+   Hatid Design System - imported foundation tokens (Phase 0)
+   --------------------------------------------------------------------------
+   Source bundle: "Hatid-ph Design System.zip" (_ds/.../tokens/*.css).
+   See docs/29_DESIGN_SYSTEM_IMPORT_AUDIT.md for the full import audit.
+
+   These are ADDITIVE, NAMESPACED tokens (--hatid-*, --surface-*, --text-*,
+   --space-*, --radius-*, --shadow-*). They are made available for future,
+   deliberate adoption. They intentionally DO NOT override the live shadcn
+   theme above (--primary/--background/--radius/etc.), so no existing product
+   page is re-skinned by this import.
+
+   NOT ADOPTED YET: the bundle re-themes the app's primary from blue to red
+   (#E4002B). Flipping the live --primary token would re-skin every product
+   surface and is a design decision that must wait for explicit sign-off.
+   ========================================================================== */
+:root {
+  /* ---- Brand palette (red / navy / yellow - NOT wired to live --primary) ---- */
+  --hatid-primary: #E4002B;        /* primary actions, selected state, emphasis */
+  --hatid-primary-hover: #C1001F;  /* pressed / hover on primary */
+  --hatid-primary-soft: #FDECEF;   /* soft red tint (large fills) */
+  --hatid-primary-50: #FEF1F3;     /* icon chip backgrounds, active nav */
+  --hatid-ink: #0A1E5C;            /* headings & high-emphasis text (deep navy) */
+  --hatid-navy: #002F87;           /* trust, structure, pickup markers */
+  --hatid-navy-soft: #E9EFFB;      /* soft navy tint (icon chips, trust panels) */
+  --hatid-yellow: #FFD100;         /* accent - wordmark underline, ratings */
+
+  /* ---- Surfaces ---- */
+  --surface-canvas: #F8F9FC;
+  --surface-raised: #FFFFFF;
+  --surface-muted: #F1F4F9;
+
+  /* ---- Text ---- */
+  --text-primary: #101A33;
+  --text-heading: #0A1E5C;
+  --text-secondary: #46536E;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
+  --text-inverse: #FFFFFF;
+
+  /* ---- Border ---- */
+  --hatid-border: #E4E8F0;
+  --hatid-border-strong: #CBD5E1;
+
+  /* ---- Status (used sparingly, never as the only signal) ---- */
+  --hatid-success: #15803D;
+  --hatid-success-bg: #F0FDF4;
+  --hatid-warning: #A16207;
+  --hatid-warning-bg: #FEFCE8;
+  --hatid-danger: #B91C1C;
+  --hatid-danger-bg: #FEF2F2;
+  --hatid-info: #002F87;
+  --hatid-info-bg: #E9EFFB;
+
+  /* ---- Focus ---- */
+  --hatid-ring: rgba(228, 0, 43, 0.22);
+
+  /* ---- Typography scale (Inter; reuses existing --font-inter loading) ---- */
+  --hatid-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --text-display: 2.25rem;   /* 36px - hero titles */
+  --text-title: 1.5rem;      /* 24px - page / card titles */
+  --text-heading-size: 1.125rem; /* 18px - section headings */
+  --text-body: 1rem;         /* 16px - body copy */
+  --text-label: 0.875rem;    /* 14px - labels, controls */
+  --text-caption: 0.75rem;   /* 12px - captions, metadata */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-body: 1.6;
+
+  --tracking-tight: -0.02em;   /* titles */
+  --tracking-eyebrow: 0.18em;  /* uppercase metadata labels */
+
+  /* ---- Spacing (4px base rhythm; 44px min touch target) ---- */
+  --space-xs: 0.25rem;   /* 4 */
+  --space-sm: 0.5rem;    /* 8 */
+  --space-md: 1rem;      /* 16 */
+  --space-lg: 1.5rem;    /* 24 */
+  --space-xl: 2rem;      /* 32 */
+  --space-2xl: 3rem;     /* 48 */
+  --touch-target: 2.75rem; /* 44px */
+
+  /* ---- Radius ---- */
+  --radius-control: 0.875rem; /* 14px - buttons, inputs */
+  --radius-card: 1.5rem;      /* 24px - cards */
+  --radius-sheet: 2rem;       /* 32px - bottom sheets (top corners) */
+  --radius-pill: 9999px;      /* chips, avatars, toggles */
+
+  /* ---- Shadows (restrained; elevation, not decoration) ---- */
+  --shadow-card: 0 12px 32px -18px rgb(15 23 42 / 0.28);
+  --shadow-elevated: 0 18px 48px -24px rgb(0 17 68 / 0.35);
+  --shadow-nav: 0 -12px 32px -24px rgb(15 23 42 / 0.35);
+  --shadow-primary: 0 12px 28px -14px rgb(228 0 43 / 0.55);
+  --shadow-focus: 0 0 0 3px rgb(228 0 43 / 0.22);
+}
+
+/* Hatid motion - fade + slide-up only. No pulse/bounce/shimmer.
+   Additive utilities; nothing in the app is required to use them. */
+@keyframes hatid-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hatid-slide-up {
+  from { opacity: 0; transform: translateY(0.75rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-hatid-fade-in { animation: hatid-fade-in 180ms ease-out both; }
+.animate-hatid-slide-up { animation: hatid-slide-up 220ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hatid-fade-in,
+  .animate-hatid-slide-up {
+    animation: none;
+  }
+}
