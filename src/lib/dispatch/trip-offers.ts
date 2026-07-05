@@ -9,6 +9,8 @@ export type SafeTripOffer = {
   expires_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  trip_id: string | null;
+  trip_created: boolean;
 };
 
 export type TripOffersResult =
@@ -39,6 +41,8 @@ type RpcTripOfferRow = {
   expires_at?: unknown;
   created_at?: unknown;
   updated_at?: unknown;
+  trip_id?: unknown;
+  trip_created?: unknown;
 };
 
 const SAFE_TRIP_OFFERS_LOAD_ERROR = 'We could not load your trip offers right now.';
@@ -60,6 +64,8 @@ function toSafeTripOffer(row: RpcTripOfferRow | null | undefined): SafeTripOffer
     expires_at: stringOrNull(row?.expires_at),
     created_at: stringOrNull(row?.created_at),
     updated_at: stringOrNull(row?.updated_at),
+    trip_id: stringOrNull(row?.trip_id),
+    trip_created: row?.trip_created === true,
   };
 }
 

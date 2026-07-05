@@ -22,6 +22,8 @@ test('trip offer helpers call only approved driver RPCs', async () => {
           offered_at: '2026-06-24T21:00:00Z',
           responded_at: '2026-06-24T21:00:30Z',
           expires_at: '2026-06-24T21:00:45Z',
+          trip_id: 'trip-1',
+          trip_created: true,
           metadata: { hidden: true },
         } as TRow,
         error: null,
@@ -40,6 +42,8 @@ test('trip offer helpers call only approved driver RPCs', async () => {
   assert.equal(responseResult.ok, true);
   if (responseResult.ok) {
     assert.equal(responseResult.data.offer_status, 'accepted');
+    assert.equal(responseResult.data.trip_id, 'trip-1');
+    assert.equal(responseResult.data.trip_created, true);
     assert.equal('metadata' in responseResult.data, false);
   }
 });
