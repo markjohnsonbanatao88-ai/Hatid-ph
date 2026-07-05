@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type FocusEvent, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,7 +24,20 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-import { HatidIconTile, HatidTrustPill, HatidWordmark } from '../components/hatid-brand';
+import { HatidIconTile, HatidWordmark } from '@/components/hatid-brand';
+import {
+  AppHeader,
+  Badge,
+  BottomNav,
+  BottomSheet,
+  Button,
+  Card,
+  DriverCard,
+  LocationCard,
+  MapPreview,
+  RideCard,
+  SafetyCard,
+} from '@/components/hatid-ui';
 
 type Screen =
   | 'splash'
@@ -44,88 +57,94 @@ type Screen =
 
 type RideType = 'car' | 'moto';
 
-const navItems: { screen: Screen; label: string; icon: LucideIcon }[] = [
-  { screen: 'home', label: 'Home', icon: Home },
-  { screen: 'trips', label: 'Trips', icon: Clock },
-  { screen: 'wallet', label: 'Wallet', icon: Wallet },
-  { screen: 'safety', label: 'Safety', icon: Shield },
-  { screen: 'account', label: 'Account', icon: User },
+const navItems: { id: Screen; label: string; icon: LucideIcon }[] = [
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'trips', label: 'Trips', icon: Clock },
+  { id: 'wallet', label: 'Wallet', icon: Wallet },
+  { id: 'safety', label: 'Safety', icon: Shield },
+  { id: 'account', label: 'Account', icon: User },
 ];
 
-function cn(...parts: Array<string | false | null | undefined>) {
-  return parts.filter(Boolean).join(' ');
+const eyebrow: CSSProperties = {
+  fontSize: 'var(--text-caption)',
+  fontWeight: 'var(--weight-black)' as unknown as number,
+  textTransform: 'uppercase',
+  letterSpacing: 'var(--tracking-eyebrow)',
+  color: 'var(--text-faint)',
+};
+
+const heading: CSSProperties = {
+  fontSize: 'var(--text-title)',
+  fontWeight: 'var(--weight-black)' as unknown as number,
+  letterSpacing: 'var(--tracking-tight)',
+  color: 'var(--hatid-ink)',
+};
+
+const bodyMuted: CSSProperties = {
+  marginTop: '0.5rem',
+  fontSize: 'var(--text-label)',
+  lineHeight: 'var(--leading-body)',
+  color: 'var(--text-muted)',
+};
+
+function fieldFocus(on: boolean) {
+  return (event: FocusEvent<HTMLElement>) => {
+    event.currentTarget.style.borderColor = on ? 'var(--hatid-primary)' : 'var(--hatid-border-strong)';
+    event.currentTarget.style.boxShadow = on ? 'var(--shadow-focus)' : 'none';
+  };
 }
 
-function PhoneFrame({ children, showNav, current, go }: { children: ReactNode; showNav: boolean; current: Screen; go: (screen: Screen) => void }) {
+function PhoneFrame({
+  children,
+  showNav,
+  current,
+  go,
+}: {
+  children: ReactNode;
+  showNav: boolean;
+  current: Screen;
+  go: (screen: Screen) => void;
+}) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 font-sans text-slate-900 sm:p-6">
-      <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[844px] sm:max-w-[390px] sm:rounded-[2.5rem] sm:border-[8px] sm:border-slate-900">
+    <main className="flex min-h-screen items-center justify-center font-sans sm:p-6" style={{ background: '#0b1220', color: 'var(--text-primary)' }}>
+      <div
+        className="relative flex h-[100dvh] w-full flex-col overflow-hidden sm:h-[844px] sm:max-w-[390px] sm:rounded-[2.5rem] sm:border-[8px] sm:border-slate-900"
+        style={{ background: 'var(--surface-canvas)', boxShadow: '0 40px 80px -32px rgb(0 0 0 / 0.6)' }}
+      >
         <div className="absolute left-1/2 top-0 z-[100] hidden h-[25px] w-[120px] -translate-x-1/2 items-center justify-center rounded-b-[18px] bg-slate-900 sm:flex">
           <div className="h-1 w-12 rounded-full bg-black/40" />
         </div>
         <div className="relative flex-1 overflow-hidden">{children}</div>
-        {showNav && <BottomNav current={current} go={go} />}
+        {showNav && (
+          <BottomNav
+            activeId={current}
+            onNavigate={(id) => go(id as Screen)}
+            items={navItems.map(({ id, label, icon: Icon }) => ({
+              id,
+              label,
+              icon: <Icon size={21} strokeWidth={id === current ? 2.5 : 2} />,
+            }))}
+          />
+        )}
       </div>
     </main>
   );
 }
 
-function BottomNav({ current, go }: { current: Screen; go: (screen: Screen) => void }) {
-  return (
-    <nav className="absolute bottom-0 z-50 flex w-full justify-around border-t border-slate-200 bg-white/95 pb-6 pt-3 backdrop-blur sm:pb-8">
-      {navItems.map(({ screen, label, icon: Icon }) => {
-        const active = current === screen;
-        return (
-          <button key={screen} onClick={() => go(screen)} className={cn('flex w-16 flex-col items-center justify-center gap-1', active ? 'text-[#0033CC]' : 'text-slate-400 hover:text-slate-600')}>
-            <Icon size={21} strokeWidth={active ? 2.5 : 2} />
-            <span className="mt-0.5 text-[10px] font-semibold">{label}</span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function Header({ title, back, go }: { title: string; back?: Screen; go: (screen: Screen) => void }) {
-  return (
-    <div className="flex items-center gap-4 border-b border-slate-100 bg-white px-5 pb-4 pt-10 sm:pt-12">
-      {back && (
-        <button onClick={() => go(back)} className="text-slate-500 active:scale-95">
-          <ArrowLeft size={24} />
-        </button>
-      )}
-      <h1 className="flex-1 text-2xl font-black tracking-tight text-slate-900">{title}</h1>
-    </div>
-  );
-}
-
-function MapBackground({ children, className = '' }: { children?: ReactNode; className?: string }) {
-  return (
-    <div className={cn('relative overflow-hidden bg-slate-100', className)}>
-      <div className="absolute inset-0 opacity-90" style={{ backgroundImage: 'linear-gradient(#E2E8F0 1px, transparent 1px), linear-gradient(90deg, #E2E8F0 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-      <div className="absolute left-[-12%] top-[30%] h-5 w-[130%] rotate-12 rounded-full bg-white/85 shadow-sm" />
-      <div className="absolute left-[18%] top-[52%] h-4 w-[75%] -rotate-12 rounded-full bg-white/85 shadow-sm" />
-      <div className="absolute right-8 top-20 h-20 w-24 rounded-2xl bg-emerald-100/60" />
-      <div className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-white bg-[#0033CC] shadow-lg" />
-      {children}
-    </div>
-  );
-}
-
 function Splash({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-[#0033CC] px-6 pb-10 pt-20 text-white">
+    <section className="flex h-full flex-col px-6 pb-10 pt-20" style={{ background: 'var(--hatid-ink)', color: 'var(--text-inverse)' }}>
       <div className="flex flex-1 items-center justify-center">
         <HatidWordmark light large tagline="Biyahe natin. Bansa natin." />
       </div>
-      <div className="rounded-[2rem] bg-white p-6 text-slate-900 shadow-xl">
-        <HatidTrustPill tone="blue">Philippine mobility prototype</HatidTrustPill>
-        <h1 className="mt-4 text-3xl font-black tracking-[-0.04em]">Ride with confidence.</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">A lightweight passenger preview for safe city trips, family rides, and everyday commutes.</p>
-        <button onClick={() => go('login')} className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99]">
-          Get Started <ArrowRight size={18} />
-        </button>
-      </div>
+      <Card padding="lg" style={{ boxShadow: 'var(--shadow-elevated)' }}>
+        <Badge variant="info">Philippine mobility prototype</Badge>
+        <h1 className="mt-4" style={{ ...heading, fontSize: 'var(--text-display)' }}>Ride with confidence.</h1>
+        <p style={bodyMuted}>A lightweight passenger preview for safe city trips, family rides, and everyday commutes. Nothing here is a live ride.</p>
+        <Button fullWidth onClick={() => go('login')} style={{ marginTop: '1.5rem' }}>
+          Get started <ArrowRight size={18} />
+        </Button>
+      </Card>
     </section>
   );
 }
@@ -133,20 +152,33 @@ function Splash({ go }: { go: (screen: Screen) => void }) {
 function Login({ go, phone, setPhone }: { go: (screen: Screen) => void; phone: string; setPhone: (value: string) => void }) {
   const valid = phone.replace(/\D/g, '').length >= 10;
   return (
-    <section className="flex h-full flex-col bg-white px-6 pt-14">
-      <button onClick={() => go('splash')} className="mb-8 w-max text-slate-400 active:scale-95">
-        <ArrowLeft size={24} />
-      </button>
+    <section className="flex h-full flex-col px-6 pt-14" style={{ background: 'var(--surface-raised)' }}>
+      <Button variant="ghost" size="icon" onClick={() => go('splash')} aria-label="Go back" style={{ marginBottom: '2rem' }}>
+        <ArrowLeft size={22} />
+      </Button>
       <HatidWordmark compact tagline="Secure sign in" />
-      <h1 className="mt-8 text-2xl font-black tracking-tight text-slate-900">Enter your mobile number</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-500">We&apos;ll send a one-time code. Demo only, no real SMS is sent.</p>
-      <div className="mt-8 flex overflow-hidden rounded-2xl border border-slate-300 transition-all focus-within:border-[#0033CC] focus-within:ring-2 focus-within:ring-blue-100">
-        <div className="flex items-center border-r border-slate-300 bg-slate-50 px-4 py-4 text-sm font-black text-slate-600">+63</div>
-        <input value={phone} onChange={(event) => setPhone(event.target.value)} type="tel" placeholder="9XX XXX XXXX" maxLength={10} className="w-full bg-transparent px-4 py-4 font-bold text-slate-900 outline-none" />
+      <h1 className="mt-8" style={heading}>Enter your mobile number</h1>
+      <p style={bodyMuted}>We&apos;ll send a one-time code. Demo only, no real SMS is sent.</p>
+      <div
+        className="mt-8 flex overflow-hidden"
+        style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border-strong)', transition: 'border-color 140ms ease, box-shadow 140ms ease' }}
+        onFocus={fieldFocus(true)}
+        onBlur={fieldFocus(false)}
+      >
+        <div className="flex items-center px-4 py-4 text-sm font-black" style={{ borderRight: '1px solid var(--hatid-border)', background: 'var(--surface-muted)', color: 'var(--text-secondary)' }}>+63</div>
+        <input
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          type="tel"
+          placeholder="9XX XXX XXXX"
+          maxLength={10}
+          className="w-full px-4 py-4 font-bold outline-none"
+          style={{ background: 'transparent', color: 'var(--text-primary)' }}
+        />
       </div>
-      <button disabled={!valid} onClick={() => go('otp')} className="mb-8 mt-auto w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99] disabled:bg-slate-200 disabled:text-slate-400">
+      <Button fullWidth disabled={!valid} onClick={() => go('otp')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
         Continue
-      </button>
+      </Button>
     </section>
   );
 }
@@ -154,104 +186,107 @@ function Login({ go, phone, setPhone }: { go: (screen: Screen) => void; phone: s
 function Otp({ go, otp, setOtp }: { go: (screen: Screen) => void; otp: string; setOtp: (value: string) => void }) {
   const valid = otp.replace(/\D/g, '').length >= 6;
   return (
-    <section className="flex h-full flex-col bg-white px-6 pt-14">
-      <button onClick={() => go('login')} className="mb-8 w-max text-slate-400 active:scale-95">
-        <ArrowLeft size={24} />
-      </button>
-      <h1 className="text-2xl font-black tracking-tight text-slate-900">Verify number</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-500">Use any 6 digits for this prototype flow.</p>
-      <input value={otp} onChange={(event) => setOtp(event.target.value)} type="tel" maxLength={6} className="mt-10 h-16 w-full rounded-2xl border border-slate-300 text-center text-3xl font-black tracking-[0.75em] text-slate-900 outline-none focus:border-[#0033CC] focus:ring-2 focus:ring-blue-100" placeholder="------" />
-      <button disabled={!valid} onClick={() => go('profile')} className="mb-8 mt-auto w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99] disabled:bg-slate-200 disabled:text-slate-400">
-        Verify & Continue
-      </button>
+    <section className="flex h-full flex-col px-6 pt-14" style={{ background: 'var(--surface-raised)' }}>
+      <Button variant="ghost" size="icon" onClick={() => go('login')} aria-label="Go back" style={{ marginBottom: '2rem' }}>
+        <ArrowLeft size={22} />
+      </Button>
+      <h1 style={heading}>Verify number</h1>
+      <p style={bodyMuted}>Use any 6 digits for this prototype flow.</p>
+      <input
+        value={otp}
+        onChange={(event) => setOtp(event.target.value)}
+        type="tel"
+        maxLength={6}
+        placeholder="------"
+        className="mt-10 h-16 w-full text-center text-3xl font-black tracking-[0.75em] outline-none"
+        style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border-strong)', color: 'var(--hatid-ink)', transition: 'border-color 140ms ease, box-shadow 140ms ease' }}
+        onFocus={fieldFocus(true)}
+        onBlur={fieldFocus(false)}
+      />
+      <Button fullWidth disabled={!valid} onClick={() => go('profile')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
+        Verify &amp; continue
+      </Button>
     </section>
   );
 }
 
 function Profile({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-white px-6 pt-16">
-      <h1 className="text-2xl font-black tracking-tight text-slate-900">Set up profile</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-500">These fields are prototype-only until Supabase profile saving is wired.</p>
-      <label className="mt-8 block text-xs font-black uppercase tracking-wide text-slate-500">Full name</label>
-      <div className="mt-2 flex items-center rounded-2xl border border-slate-300 px-4 py-1 focus-within:border-[#0033CC] focus-within:ring-2 focus-within:ring-blue-100">
-        <User size={18} className="text-slate-400" />
-        <input type="text" placeholder="e.g. Maria Santos" className="w-full py-3 pl-3 text-sm font-bold outline-none" />
+    <section className="flex h-full flex-col px-6 pt-16" style={{ background: 'var(--surface-raised)' }}>
+      <h1 style={heading}>Set up profile</h1>
+      <p style={bodyMuted}>These fields are prototype-only until Supabase profile saving is wired.</p>
+      <label className="mt-8 block" style={{ ...eyebrow, letterSpacing: '0.08em' }}>Full name</label>
+      <div
+        className="mt-2 flex items-center px-4 py-1"
+        style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border-strong)', transition: 'border-color 140ms ease, box-shadow 140ms ease' }}
+        onFocus={fieldFocus(true)}
+        onBlur={fieldFocus(false)}
+      >
+        <User size={18} style={{ color: 'var(--text-faint)' }} />
+        <input type="text" placeholder="e.g. Maria Santos" className="w-full py-3 pl-3 text-sm font-bold outline-none" style={{ background: 'transparent', color: 'var(--text-primary)' }} />
       </div>
-      <button onClick={() => go('permissions')} className="mb-8 mt-auto w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99]">
+      <Button fullWidth onClick={() => go('permissions')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
         Continue
-      </button>
+      </Button>
     </section>
   );
 }
 
 function Permissions({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-white px-6 pt-16">
+    <section className="flex h-full flex-col px-6 pt-16" style={{ background: 'var(--surface-raised)' }}>
       <HatidWordmark tagline="Passenger safety setup" />
-      <h1 className="mt-10 text-2xl font-black tracking-tight text-slate-900">Let&apos;s keep every ride safe.</h1>
-      <p className="mt-2 text-sm leading-6 text-slate-500">Permission copy is demo-safe and does not imply live emergency or dispatch operations.</p>
+      <h1 className="mt-10" style={heading}>Let&apos;s keep every ride safe.</h1>
+      <p style={bodyMuted}>Permission copy is demo-safe and does not imply live emergency or dispatch operations.</p>
       <div className="mt-8 space-y-4">
         <InfoRow icon={MapPin} title="Location" detail="Needed for pickup and routing previews." />
         <InfoRow icon={Bell} title="Notifications" detail="Used for ride updates once backend flows are active." />
         <InfoRow icon={Shield} title="Safety" detail="Safety actions must be server-owned before production use." />
       </div>
-      <button onClick={() => go('home')} className="mb-8 mt-auto w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99]">
+      <Button fullWidth onClick={() => go('home')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
         Continue to Hatid
-      </button>
+      </Button>
     </section>
   );
 }
 
 function HomeScreen({ go }: { go: (screen: Screen) => void }) {
-  const services = [
+  const services: { label: string; icon: LucideIcon }[] = [
     { label: 'Ride', icon: Car },
     { label: 'Moto', icon: Bike },
     { label: 'Work', icon: Briefcase },
     { label: 'Card', icon: CreditCard },
   ];
   return (
-    <section className="flex h-full flex-col bg-white">
-      <div className="flex items-center justify-between bg-white px-5 pb-4 pt-10 sm:pt-12">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Good afternoon</p>
-          <h2 className="mt-1 text-lg font-black text-slate-900">Hi, Maria</h2>
-        </div>
-        <button className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200 text-slate-500">
-          <Bell size={20} />
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto px-5 pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="rounded-[2rem] bg-[#0033CC] p-5 text-white shadow-lg">
-          <HatidWordmark light compact tagline="BGC • Makati • QC • Pasay" />
-          <h1 className="mt-6 text-3xl font-black tracking-[-0.04em]">Saan ang punta?</h1>
-          <button onClick={() => go('book-search')} className="mt-5 flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left text-slate-900 active:scale-[0.99]">
-            <Search size={20} className="text-slate-400" />
-            <span className="flex-1 text-sm font-bold text-slate-600">Where to?</span>
-            <span className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600">Now</span>
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
+      <AppHeader title="Hi, Maria" subtitle="Good afternoon - prototype preview" onNotifications={() => undefined} />
+      <div className="flex-1 overflow-y-auto px-5 pb-32 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="p-5" style={{ borderRadius: 'var(--radius-sheet)', background: 'var(--hatid-ink)', color: 'var(--text-inverse)', boxShadow: 'var(--shadow-elevated)' }}>
+          <HatidWordmark light compact tagline="BGC - Makati - QC - Pasay" />
+          <h1 className="mt-6" style={{ ...heading, fontSize: 'var(--text-display)', color: 'var(--text-inverse)' }}>Saan ang punta?</h1>
+          <button
+            onClick={() => go('book-search')}
+            className="mt-5 flex w-full items-center gap-3 p-4 text-left active:scale-[0.99]"
+            style={{ borderRadius: 'var(--radius-control)', background: 'var(--surface-raised)', color: 'var(--text-primary)', minHeight: 'var(--touch-target)' }}
+          >
+            <Search size={20} style={{ color: 'var(--text-faint)' }} />
+            <span className="flex-1 text-sm font-bold" style={{ color: 'var(--text-muted)' }}>Where to?</span>
+            <Badge variant="secondary">Now</Badge>
           </button>
         </div>
         <div className="mt-6 grid grid-cols-4 gap-3">
           {services.map(({ label, icon: Icon }) => (
-            <button key={label} className="flex flex-col items-center gap-2">
+            <button key={label} className="flex flex-col items-center gap-2" style={{ minHeight: 'var(--touch-target)' }}>
               <HatidIconTile active={label === 'Ride'}>
                 <Icon size={21} />
               </HatidIconTile>
-              <span className="text-xs font-bold text-slate-700">{label}</span>
+              <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>{label}</span>
             </button>
           ))}
         </div>
         <WalletSummary go={go} />
-        <h3 className="mb-3 mt-6 text-sm font-black text-slate-900">Recent places</h3>
-        <button onClick={() => go('book-choose')} className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm active:scale-[0.99]">
-          <HatidIconTile>
-            <Briefcase size={18} />
-          </HatidIconTile>
-          <div>
-            <h4 className="text-sm font-black text-slate-900">Work</h4>
-            <p className="text-xs text-slate-500">BGC Corporate Center, Taguig</p>
-          </div>
-        </button>
+        <h3 className="mb-3 mt-6 text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>Recent places</h3>
+        <LocationCard icon={<Briefcase size={18} />} label="Work" address="BGC Corporate Center, Taguig" onSelect={() => go('book-choose')} />
       </div>
     </section>
   );
@@ -259,173 +294,162 @@ function HomeScreen({ go }: { go: (screen: Screen) => void }) {
 
 function WalletSummary({ go }: { go: (screen: Screen) => void }) {
   return (
-    <button onClick={() => go('wallet')} className="mt-6 flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left">
+    <button onClick={() => go('wallet')} className="mt-6 flex w-full items-center justify-between p-4 text-left" style={{ borderRadius: 'var(--radius-card)', border: '1px solid var(--hatid-border)', background: 'var(--surface-muted)', minHeight: 'var(--touch-target)' }}>
       <div className="flex items-center gap-3">
         <HatidIconTile>
           <Wallet size={18} />
         </HatidIconTile>
         <div>
-          <p className="text-xs font-black uppercase tracking-wide text-slate-400">Hatid Wallet</p>
-          <p className="text-sm font-black text-slate-900">Demo balance</p>
+          <p style={eyebrow}>Hatid Wallet</p>
+          <p className="text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>Preview only</p>
         </div>
       </div>
-      <HatidTrustPill tone="slate">Server-owned later</HatidTrustPill>
+      <Badge variant="secondary">Ledger-owned later</Badge>
     </button>
   );
 }
 
 function BookSearch({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-white">
-      <Header title="Search destination" back="home" go={go} />
-      <div className="border-b border-slate-100 px-5 py-4">
-        <InputPin dot="bg-slate-800" value="Current location" readOnly />
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-raised)' }}>
+      <AppHeader title="Search destination" onBack={() => go('home')} />
+      <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--hatid-border)' }}>
+        <InputPin dotColor="var(--hatid-navy)" value="Current location" readOnly />
         <div className="mt-3">
-          <InputPin dot="bg-red-500" placeholder="Where to?" focused />
+          <InputPin dotColor="var(--hatid-primary)" placeholder="Where to?" focused />
         </div>
       </div>
       <div className="flex-1 p-5">
-        <button onClick={() => go('book-choose')} className="flex w-full items-center gap-4 rounded-2xl border border-slate-200 p-4 text-left shadow-sm">
-          <Clock size={20} className="text-slate-400" />
-          <div>
-            <h4 className="text-sm font-black text-slate-900">Ayala Triangle Gardens</h4>
-            <p className="text-xs text-slate-500">Paseo de Roxas, Makati City</p>
-          </div>
-        </button>
+        <LocationCard
+          icon={<Clock size={18} />}
+          label="Ayala Triangle Gardens"
+          address="Paseo de Roxas, Makati City"
+          note="Suggested place - demo data, not live search"
+          onSelect={() => go('book-choose')}
+        />
       </div>
     </section>
   );
 }
 
-function InputPin({ dot, value, placeholder, readOnly, focused }: { dot: string; value?: string; placeholder?: string; readOnly?: boolean; focused?: boolean }) {
+function InputPin({ dotColor, value, placeholder, readOnly, focused }: { dotColor: string; value?: string; placeholder?: string; readOnly?: boolean; focused?: boolean }) {
   return (
     <div className="relative flex items-center">
-      <div className={cn('absolute left-[7px] h-2 w-2 rounded-full ring-4 ring-white', dot)} />
-      <input value={value} readOnly={readOnly} placeholder={placeholder} className={cn('w-full rounded-2xl py-3 pl-8 pr-3 text-sm font-bold text-slate-800 outline-none', focused ? 'border border-[#0033CC] bg-white shadow-sm focus:ring-2 focus:ring-blue-100' : 'border border-slate-100 bg-slate-50')} />
+      <div className="absolute left-[10px] h-2 w-2 rounded-full ring-4 ring-white" style={{ background: dotColor }} />
+      <input
+        value={value}
+        readOnly={readOnly}
+        placeholder={placeholder}
+        className="w-full py-3 pl-8 pr-3 text-sm font-bold outline-none"
+        style={{
+          borderRadius: 'var(--radius-control)',
+          color: 'var(--text-primary)',
+          border: `1px solid ${focused ? 'var(--hatid-primary)' : 'var(--hatid-border)'}`,
+          background: focused ? 'var(--surface-raised)' : 'var(--surface-muted)',
+          boxShadow: focused ? 'var(--shadow-focus)' : 'none',
+        }}
+      />
     </div>
   );
 }
 
 function BookChoose({ go, ride, setRide }: { go: (screen: Screen) => void; ride: RideType; setRide: (ride: RideType) => void }) {
   return (
-    <section className="flex h-full flex-col bg-slate-100">
-      <MapBackground className="h-60">
-        <div className="absolute left-5 right-5 top-10 rounded-[1.5rem] border border-white/80 bg-white/95 p-4 shadow-sm backdrop-blur sm:top-12">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Route preview</p>
-              <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">BGC to Makati</h2>
-              <p className="mt-1 text-xs text-slate-500">Ayala Triangle Gardens • traffic-aware demo</p>
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-muted)' }}>
+      <MapPreview className="h-60">
+        <div className="absolute left-5 right-5 top-10 sm:top-12">
+          <Card padding="md">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p style={eyebrow}>Route preview</p>
+                <h2 className="mt-1" style={{ ...heading, fontSize: 'var(--text-heading-size)' }}>BGC to Makati</h2>
+                <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Ayala Triangle Gardens - visual preview only</p>
+              </div>
+              <Badge variant="info">Estimate</Badge>
             </div>
-            <HatidTrustPill tone="blue">Estimate</HatidTrustPill>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <HatidTrustPill tone="green">Family-safe</HatidTrustPill>
-            <HatidTrustPill tone="slate">Server-priced later</HatidTrustPill>
-          </div>
+            <div className="mt-3 flex gap-2">
+              <Badge variant="success">Family-safe</Badge>
+              <Badge variant="secondary">Server-priced later</Badge>
+            </div>
+          </Card>
         </div>
-      </MapBackground>
-      <div className="relative z-20 -mt-5 flex flex-1 flex-col rounded-t-[30px] bg-white shadow-lg">
-        <div className="mx-auto mb-4 mt-2 h-1 w-10 rounded-full bg-slate-200" />
-        <div className="px-5 pb-3">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Choose ride</p>
-          <h3 className="mt-1 text-xl font-black tracking-tight text-slate-900">Pick the right Hatid</h3>
-        </div>
-        <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-4">
-          <RideOption selected={ride === 'car'} icon={Car} title="Hatid Car" detail="Comfortable city ride" meta="3 mins • 4 seats • BGC-ready" estimate="Fare estimate pending" onClick={() => setRide('car')} />
-          <RideOption selected={ride === 'moto'} icon={Bike} title="Hatid Moto" detail="Fast solo trip" meta="1 min • 1 seat • helmet workflow later" estimate="Fare estimate pending" onClick={() => setRide('moto')} />
-        </div>
-        <div className="border-t border-slate-100 bg-white p-5">
-          <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 p-3">
-            <p className="text-xs font-bold leading-5 text-[#0033CC]">Fare, dispatch, driver assignment, and wallet charging must be confirmed by server workflows before real use.</p>
+      </MapPreview>
+      <div className="relative z-20 -mt-6 flex flex-1 flex-col">
+        <BottomSheet title="Pick the right Hatid" description="Fares and ETAs shown are estimates for prototype review.">
+          <div className="space-y-3">
+            <RideCard id="car" rideType="HatidCar" description="Comfortable city ride" eta="3 mins" capacity="4 seats" fareEstimate="Est. pending" icon={Car} selected={ride === 'car'} onSelect={() => setRide('car')} />
+            <RideCard id="moto" rideType="HatidMoto" description="Fast solo trip - helmet workflow later" eta="1 min" capacity="1 seat" fareEstimate="Est. pending" icon={Bike} selected={ride === 'moto'} onSelect={() => setRide('moto')} />
           </div>
-          <button onClick={() => go('book-active')} className="w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99]">
+          <div className="mt-4" style={{ borderRadius: 'var(--radius-control)', border: '1px solid #D5DFF3', background: 'var(--hatid-navy-soft)', padding: '0.75rem' }}>
+            <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-navy)' }}>Fare, dispatch, driver assignment, and wallet charging must be confirmed by server workflows before real use.</p>
+          </div>
+          <Button fullWidth onClick={() => go('book-active')} style={{ marginTop: '1rem' }}>
             Continue demo ride
-          </button>
-        </div>
+          </Button>
+        </BottomSheet>
       </div>
     </section>
   );
 }
 
-function RideOption({ selected, icon: Icon, title, detail, meta, estimate, onClick }: { selected: boolean; icon: LucideIcon; title: string; detail: string; meta: string; estimate: string; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className={cn('w-full rounded-[1.35rem] border p-4 text-left transition-colors', selected ? 'border-[#0033CC] bg-blue-50' : 'border-slate-200 bg-white')}>
-      <div className="flex items-start gap-4">
-        <HatidIconTile active={selected}>
-          <Icon size={22} />
-        </HatidIconTile>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-black text-slate-900">{title}</h3>
-              <p className="mt-1 text-xs text-slate-500">{detail}</p>
-            </div>
-            {selected && <HatidTrustPill tone="blue">Selected</HatidTrustPill>}
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/80 px-3 py-2">
-            <p className="text-[11px] font-bold text-slate-500">{meta}</p>
-            <p className="text-[11px] font-black text-slate-700">{estimate}</p>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
 function BookActive({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-slate-100">
-      <div className="absolute left-5 right-5 top-10 z-20 rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm sm:top-12">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Active demo trip</p>
-            <h3 className="mt-1 text-base font-black tracking-tight text-slate-900">Driver is arriving</h3>
-            <p className="mt-1 text-xs text-slate-500">BGC High Street pickup • Makati destination</p>
-          </div>
-          <HatidTrustPill>2 mins</HatidTrustPill>
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-          <div className="h-2 flex-1 rounded-full bg-[#0033CC]" />
-          <div className="h-2 flex-1 rounded-full bg-blue-100" />
-          <div className="h-2 flex-1 rounded-full bg-blue-100" />
-        </div>
-      </div>
-      <MapBackground className="flex-1" />
-      <div className="relative z-30 -mt-5 rounded-t-[30px] bg-white px-5 pb-6 pt-2 shadow-lg">
-        <div className="mx-auto mb-4 mt-2 h-1 w-10 rounded-full bg-slate-200" />
-        <div className="mb-4 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-3">
-            <span className="text-[10px] font-black uppercase tracking-wide text-[#0033CC]">Ride PIN</span>
-            <p className="mt-1 text-2xl font-black tracking-widest text-slate-900">4821</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <span className="text-[10px] font-black uppercase tracking-wide text-slate-500">Trip state</span>
-            <p className="mt-1 text-sm font-black text-slate-900">Demo only</p>
-            <p className="mt-1 text-[11px] text-slate-500">Server-owned later</p>
-          </div>
-        </div>
-        <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-slate-200 bg-slate-100 font-black text-slate-600">JC</div>
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-muted)' }}>
+      <div className="absolute left-5 right-5 top-10 z-20 sm:top-12">
+        <Card padding="md">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-sm font-black text-slate-900">Juan Dela Cruz</h3>
-              <p className="text-xs text-slate-500">Toyota Vios • ABC-1234</p>
-              <p className="mt-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-600">Verification copy demo</p>
+              <p style={eyebrow}>Active demo trip</p>
+              <h3 className="mt-1" style={{ ...heading, fontSize: 'var(--text-heading-size)' }}>Driver is arriving</h3>
+              <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Simulated status - not live dispatch</p>
+            </div>
+            <Badge variant="info">2 mins</Badge>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <div className="h-2 flex-1 rounded-full" style={{ background: 'var(--hatid-primary)' }} />
+            <div className="h-2 flex-1 rounded-full" style={{ background: 'var(--hatid-primary-50)' }} />
+            <div className="h-2 flex-1 rounded-full" style={{ background: 'var(--hatid-primary-50)' }} />
+          </div>
+        </Card>
+      </div>
+      <MapPreview className="flex-1" />
+      <div className="relative z-30 -mt-6">
+        <BottomSheet>
+          <div className="mb-4 grid grid-cols-2 gap-3">
+            <div style={{ borderRadius: 'var(--radius-control)', border: '1px solid #D5DFF3', background: 'var(--hatid-navy-soft)', padding: '0.75rem' }}>
+              <span style={{ ...eyebrow, color: 'var(--hatid-navy)' }}>Ride PIN</span>
+              <p className="mt-1 text-2xl font-black tracking-widest" style={{ color: 'var(--hatid-ink)' }}>4821</p>
+            </div>
+            <div style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border)', background: 'var(--surface-muted)', padding: '0.75rem' }}>
+              <span style={eyebrow}>Trip state</span>
+              <p className="mt-1 text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>Demo only</p>
+              <p className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>Not client-authoritative - server-owned later</p>
             </div>
           </div>
-          <button className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 text-[#0033CC]">
-            <Phone size={18} />
-          </button>
-        </div>
-        <div className="mb-4 rounded-2xl border border-amber-100 bg-amber-50 p-3">
-          <p className="text-xs font-bold leading-5 text-amber-800">Safety actions are visual only here. Real incident handling needs backend workflow, audit logs, and operator escalation.</p>
-        </div>
-        <div className="flex gap-3">
-          <button className="flex-1 rounded-2xl border border-slate-200 py-3 text-xs font-black text-slate-700">Share Trip</button>
-          <button className="flex-1 rounded-2xl border border-red-100 bg-red-50 py-3 text-xs font-black text-red-600">Safety Help</button>
-        </div>
-        <button onClick={() => go('book-completed')} className="mt-4 w-full text-xs font-semibold text-slate-400 underline">End demo trip</button>
+          <DriverCard
+            name="Juan Dela Cruz"
+            vehicle="Toyota Vios - white"
+            plate="ABC-1234"
+            rating={4.9}
+            statusLabel="Verification copy demo"
+            action={
+              <Button variant="secondary" size="icon" aria-label="Call driver (demo)">
+                <Phone size={18} />
+              </Button>
+            }
+            style={{ marginBottom: '1rem' }}
+          />
+          <SafetyCard tone="urgent" title="Safety is visual only here" style={{ marginBottom: '1rem' }}>
+            Safety actions are visual only here. Real incident handling needs backend workflow, audit logs, and operator escalation.
+          </SafetyCard>
+          <div className="flex gap-3">
+            <Button variant="outline" fullWidth>Share trip</Button>
+            <Button variant="danger" fullWidth>Safety help</Button>
+          </div>
+          <Button variant="link" fullWidth onClick={() => go('book-completed')} style={{ marginTop: '0.75rem', fontSize: 'var(--text-caption)' }}>
+            End demo trip
+          </Button>
+        </BottomSheet>
       </div>
     </section>
   );
@@ -433,50 +457,59 @@ function BookActive({ go }: { go: (screen: Screen) => void }) {
 
 function Completed({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-white px-6 pt-16">
-      <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+    <section className="flex h-full flex-col px-6 pt-16" style={{ background: 'var(--surface-raised)' }}>
+      <div className="mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: 'var(--hatid-success-bg)', color: 'var(--hatid-success)' }}>
         <Check size={32} strokeWidth={3} />
       </div>
       <div className="text-center">
-        <h1 className="mt-6 text-2xl font-black tracking-tight text-slate-900">You&apos;ve arrived.</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">Trip completion is a prototype state. Receipt and fare records must be server-generated.</p>
+        <h1 className="mt-6" style={heading}>You&apos;ve arrived.</h1>
+        <p style={{ ...bodyMuted, marginLeft: 'auto', marginRight: 'auto' }}>Trip completion is a prototype state. Receipt and fare records must be server-generated.</p>
       </div>
-      <div className="mt-8 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+      <Card padding="md" style={{ marginTop: '2rem', background: 'var(--surface-muted)', boxShadow: 'none' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Trip summary</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">BGC to Makati</h2>
+            <p style={eyebrow}>Trip summary</p>
+            <h2 className="mt-1" style={{ ...heading, fontSize: 'var(--text-heading-size)' }}>BGC to Makati</h2>
           </div>
-          <HatidTrustPill tone="slate">Demo receipt</HatidTrustPill>
+          <Badge variant="secondary">Demo receipt</Badge>
         </div>
         <div className="mt-4 space-y-3 text-sm">
-          <div className="flex justify-between border-b border-slate-200 pb-2"><span className="text-slate-500">Ride type</span><span className="font-black text-slate-900">Hatid Car</span></div>
-          <div className="flex justify-between border-b border-slate-200 pb-2"><span className="text-slate-500">Payment</span><span className="font-black text-slate-900">Not charged</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Fare</span><span className="font-black text-slate-900">Server-owned later</span></div>
+          <SummaryRow label="Ride type" value="HatidCar" />
+          <SummaryRow label="Payment" value="Not charged" />
+          <SummaryRow label="Fare" value="Server-owned later" last />
         </div>
-      </div>
+      </Card>
       <div className="mt-8 text-center">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Rate demo experience</p>
-        <div className="mt-3 flex justify-center gap-1 text-amber-400">
+        <p style={{ ...eyebrow, letterSpacing: 'var(--tracking-eyebrow)' }}>Rate demo experience</p>
+        <div className="mt-3 flex justify-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
-            <Star key={star} size={28} fill="currentColor" />
+            <Star key={star} size={28} fill="var(--hatid-yellow)" color="var(--hatid-yellow)" />
           ))}
         </div>
       </div>
-      <button onClick={() => go('home')} className="mb-8 mt-auto w-full rounded-2xl bg-[#0033CC] py-4 text-sm font-black text-white active:scale-[0.99]">
+      <Button fullWidth onClick={() => go('home')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
         Back to home
-      </button>
+      </Button>
     </section>
+  );
+}
+
+function SummaryRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div className="flex justify-between pb-2" style={last ? undefined : { borderBottom: '1px solid var(--hatid-border)' }}>
+      <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+      <span className="font-black" style={{ color: 'var(--hatid-ink)' }}>{value}</span>
+    </div>
   );
 }
 
 function Trips({ go }: { go: (screen: Screen) => void }) {
   return (
-    <section className="flex h-full flex-col bg-white">
-      <Header title="Trips" go={go} />
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
+      <AppHeader title="Trips" subtitle="Prototype history - not real trips" />
       <div className="space-y-3 p-5">
-        <TripCard title="BGC to Makati" detail="Prototype trip • Today" />
-        <TripCard title="Pasay to NAIA" detail="Prototype trip • Yesterday" />
+        <TripCard title="BGC to Makati" detail="Prototype trip - Today" />
+        <TripCard title="Pasay to NAIA" detail="Prototype trip - Yesterday" />
       </div>
     </section>
   );
@@ -484,27 +517,27 @@ function Trips({ go }: { go: (screen: Screen) => void }) {
 
 function TripCard({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-black text-slate-900">{title}</h3>
-      <p className="mt-1 text-xs text-slate-500">{detail}</p>
-    </div>
+    <Card padding="md">
+      <h3 className="text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>{title}</h3>
+      <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>{detail}</p>
+    </Card>
   );
 }
 
-function WalletScreen({ go }: { go: (screen: Screen) => void }) {
+function WalletScreen() {
   return (
-    <section className="flex h-full flex-col bg-white">
-      <Header title="Wallet" go={go} />
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
+      <AppHeader title="Wallet" subtitle="Preview only - no live balance" />
       <div className="flex-1 space-y-4 overflow-y-auto p-5 pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="rounded-[2rem] bg-[#0033CC] p-5 text-white shadow-sm">
+        <div className="p-5" style={{ borderRadius: 'var(--radius-sheet)', background: 'var(--hatid-ink)', color: 'var(--text-inverse)', boxShadow: 'var(--shadow-elevated)' }}>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-100">Hatid Wallet</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em]">Ledger-safe preview</h2>
+              <p style={{ ...eyebrow, color: 'rgba(255,255,255,0.7)' }}>Hatid Wallet</p>
+              <h2 className="mt-2" style={{ ...heading, fontSize: 'var(--text-display)', color: 'var(--text-inverse)' }}>Ledger-safe preview</h2>
             </div>
-            <HatidTrustPill tone="blue">Demo</HatidTrustPill>
+            <Badge variant="default">Demo</Badge>
           </div>
-          <p className="mt-4 text-sm leading-6 text-blue-50">Balances, payments, refunds, and fares must be generated by audited backend workflows before real use.</p>
+          <p className="mt-4 text-sm leading-6" style={{ color: 'rgba(255,255,255,0.82)' }}>Balances, payments, refunds, and fares must be generated by audited backend workflows before real use.</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <MiniStat label="Balance" value="Not live" />
@@ -512,8 +545,8 @@ function WalletScreen({ go }: { go: (screen: Screen) => void }) {
         </div>
         <InfoRow icon={CreditCard} title="Payment methods" detail="GCash, Maya, card, and cash labels stay display-only until PSP and reconciliation rules exist." />
         <InfoRow icon={Wallet} title="No client balance edits" detail="Real wallet balances must come from an auditable ledger, never local app state." />
-        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
-          <p className="text-xs font-bold leading-5 text-amber-800">This wallet screen is safe for prototype review. It does not move, hold, charge, refund, or reconcile money.</p>
+        <div style={{ borderRadius: 'var(--radius-card)', border: '1px solid var(--hatid-warning-bg)', background: 'var(--hatid-warning-bg)', padding: '1rem' }}>
+          <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-warning)' }}>This wallet screen is safe for prototype review. It does not move, hold, charge, refund, or reconcile money.</p>
         </div>
       </div>
     </section>
@@ -522,51 +555,42 @@ function WalletScreen({ go }: { go: (screen: Screen) => void }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-black text-slate-900">{value}</p>
-    </div>
+    <Card padding="md" style={{ background: 'var(--surface-muted)', boxShadow: 'none' }}>
+      <p style={eyebrow}>{label}</p>
+      <p className="mt-1 text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>{value}</p>
+    </Card>
   );
 }
 
-function SafetyScreen({ go }: { go: (screen: Screen) => void }) {
+function SafetyScreen() {
   return (
-    <section className="flex h-full flex-col bg-white">
-      <Header title="Safety" go={go} />
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
+      <AppHeader title="Safety" subtitle="Visual actions only - no live response" />
       <div className="flex-1 space-y-4 overflow-y-auto p-5 pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="rounded-[2rem] border border-red-100 bg-red-50 p-5">
-          <div className="flex items-start gap-4">
-            <HatidIconTile active>
-              <Shield size={22} />
-            </HatidIconTile>
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-red-500">Safety center</p>
-              <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Clear actions, no false promises.</h2>
-              <p className="mt-2 text-sm leading-6 text-red-700">Live safety response needs escalation rules, audit logs, trained operators, and local process coverage.</p>
-            </div>
-          </div>
-        </div>
+        <SafetyCard tone="urgent" title="Clear actions, no false promises">
+          Live safety response needs escalation rules, audit logs, trained operators, and local process coverage. Nothing here contacts responders.
+        </SafetyCard>
         <InfoRow icon={Shield} title="Share trip" detail="Designed for family visibility once backend trip status, permissions, and delivery channels are active." />
         <InfoRow icon={Phone} title="Safety help" detail="No emergency-response promise until escalation, audit logs, and support staffing exist." />
         <InfoRow icon={HelpCircle} title="Report an issue" detail="Incident reporting should capture evidence, timestamps, participants, and operator resolution states." />
-        <button className="w-full rounded-2xl border border-red-100 bg-red-50 py-4 text-sm font-black text-red-600">Open demo safety actions</button>
+        <Button variant="danger" fullWidth>Open demo safety actions</Button>
       </div>
     </section>
   );
 }
 
-function Account({ go }: { go: (screen: Screen) => void }) {
+function Account() {
   return (
-    <section className="flex h-full flex-col bg-white">
-      <Header title="Account" go={go} />
+    <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
+      <AppHeader title="Account" subtitle="Passenger preview" />
       <div className="flex-1 space-y-4 overflow-y-auto p-5 pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="rounded-[2rem] bg-slate-950 p-5 text-white">
+        <div className="p-5" style={{ borderRadius: 'var(--radius-sheet)', background: 'var(--hatid-ink)', color: 'var(--text-inverse)' }}>
           <HatidWordmark light compact tagline="Passenger preview" />
           <div className="mt-6 flex items-center gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/10 font-black ring-1 ring-white/15">MS</div>
+            <div className="grid h-14 w-14 place-items-center rounded-2xl font-black" style={{ background: 'rgba(255,255,255,0.1)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.15)' }}>MS</div>
             <div>
               <h2 className="text-lg font-black">Maria Santos</h2>
-              <p className="text-sm text-slate-300">+63 917 000 0000</p>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.72)' }}>+63 917 000 0000</p>
             </div>
           </div>
         </div>
@@ -580,15 +604,15 @@ function Account({ go }: { go: (screen: Screen) => void }) {
 
 function InfoRow({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail: string }) {
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <Card padding="md" style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
       <HatidIconTile>
         <Icon size={20} />
       </HatidIconTile>
       <div>
-        <h3 className="text-sm font-black text-slate-900">{title}</h3>
-        <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
+        <h3 className="text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>{title}</h3>
+        <p className="mt-1 text-xs leading-5" style={{ color: 'var(--text-muted)' }}>{detail}</p>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -614,9 +638,9 @@ export default function App() {
       {screen === 'book-active' && <BookActive go={go} />}
       {screen === 'book-completed' && <Completed go={go} />}
       {screen === 'trips' && <Trips go={go} />}
-      {screen === 'wallet' && <WalletScreen go={go} />}
-      {screen === 'safety' && <SafetyScreen go={go} />}
-      {screen === 'account' && <Account go={go} />}
+      {screen === 'wallet' && <WalletScreen />}
+      {screen === 'safety' && <SafetyScreen />}
+      {screen === 'account' && <Account />}
     </PhoneFrame>
   );
 }
