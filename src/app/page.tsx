@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 import { HatidIconTile, HatidWordmark } from '@/components/hatid-brand';
+import { PROTOTYPE_HONESTY_COPY as HONESTY } from '@/lib/prototype-honesty-copy';
 import {
   AppHeader,
   Badge,
@@ -168,8 +169,10 @@ function Login({ go, phone, setPhone }: { go: (screen: Screen) => void; phone: s
         <div className="flex items-center px-4 py-4 text-sm font-black" style={{ borderRight: '1px solid var(--hatid-border)', background: 'var(--surface-muted)', color: 'var(--text-secondary)' }}>+63</div>
         <input
           value={phone}
-          onChange={(event) => setPhone(event.target.value)}
+          onChange={(event) => setPhone(event.target.value.replace(/\D/g, '').slice(0, 10))}
           type="tel"
+          inputMode="numeric"
+          aria-label="Mobile number"
           placeholder="9XX XXX XXXX"
           maxLength={10}
           className="w-full px-4 py-4 font-bold outline-none"
@@ -194,8 +197,10 @@ function Otp({ go, otp, setOtp }: { go: (screen: Screen) => void; otp: string; s
       <p style={bodyMuted}>Use any 6 digits for this prototype flow.</p>
       <input
         value={otp}
-        onChange={(event) => setOtp(event.target.value)}
+        onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
         type="tel"
+        inputMode="numeric"
+        aria-label="One-time verification code"
         maxLength={6}
         placeholder="------"
         className="mt-10 h-16 w-full text-center text-3xl font-black tracking-[0.75em] outline-none"
@@ -215,7 +220,7 @@ function Profile({ go }: { go: (screen: Screen) => void }) {
     <section className="flex h-full flex-col px-6 pt-16" style={{ background: 'var(--surface-raised)' }}>
       <h1 style={heading}>Set up profile</h1>
       <p style={bodyMuted}>These fields are prototype-only until Supabase profile saving is wired.</p>
-      <label className="mt-8 block" style={{ ...eyebrow, letterSpacing: '0.08em' }}>Full name</label>
+      <label htmlFor="profile-full-name" className="mt-8 block" style={{ ...eyebrow, letterSpacing: '0.08em' }}>Full name</label>
       <div
         className="mt-2 flex items-center px-4 py-1"
         style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border-strong)', transition: 'border-color 140ms ease, box-shadow 140ms ease' }}
@@ -223,7 +228,7 @@ function Profile({ go }: { go: (screen: Screen) => void }) {
         onBlur={fieldFocus(false)}
       >
         <User size={18} style={{ color: 'var(--text-faint)' }} />
-        <input type="text" placeholder="e.g. Maria Santos" className="w-full py-3 pl-3 text-sm font-bold outline-none" style={{ background: 'transparent', color: 'var(--text-primary)' }} />
+        <input id="profile-full-name" type="text" placeholder="e.g. Maria Santos" className="w-full py-3 pl-3 text-sm font-bold outline-none" style={{ background: 'transparent', color: 'var(--text-primary)' }} />
       </div>
       <Button fullWidth onClick={() => go('permissions')} style={{ marginTop: 'auto', marginBottom: '2rem' }}>
         Continue
@@ -237,7 +242,7 @@ function Permissions({ go }: { go: (screen: Screen) => void }) {
     <section className="flex h-full flex-col px-6 pt-16" style={{ background: 'var(--surface-raised)' }}>
       <HatidWordmark tagline="Passenger safety setup" />
       <h1 className="mt-10" style={heading}>Let&apos;s keep every ride safe.</h1>
-      <p style={bodyMuted}>Permission copy is demo-safe and does not imply live emergency or dispatch operations.</p>
+      <p style={bodyMuted}>{HONESTY.dispatchPermissionCopy}</p>
       <div className="mt-8 space-y-4">
         <InfoRow icon={MapPin} title="Location" detail="Needed for pickup and routing previews." />
         <InfoRow icon={Bell} title="Notifications" detail="Used for ride updates once backend flows are active." />
@@ -259,7 +264,7 @@ function HomeScreen({ go }: { go: (screen: Screen) => void }) {
   ];
   return (
     <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
-      <AppHeader title="Hi, Maria" subtitle="Good afternoon - prototype preview" onNotifications={() => undefined} />
+      <AppHeader title="Hi, Maria" subtitle="Good afternoon - prototype preview" />
       <div className="flex-1 overflow-y-auto px-5 pb-32 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="p-5" style={{ borderRadius: 'var(--radius-sheet)', background: 'var(--hatid-ink)', color: 'var(--text-inverse)', boxShadow: 'var(--shadow-elevated)' }}>
           <HatidWordmark light compact tagline="BGC - Makati - QC - Pasay" />
@@ -276,12 +281,12 @@ function HomeScreen({ go }: { go: (screen: Screen) => void }) {
         </div>
         <div className="mt-6 grid grid-cols-4 gap-3">
           {services.map(({ label, icon: Icon }) => (
-            <button key={label} className="flex flex-col items-center gap-2" style={{ minHeight: 'var(--touch-target)' }}>
+            <div key={label} className="flex flex-col items-center gap-2" style={{ minHeight: 'var(--touch-target)' }}>
               <HatidIconTile active={label === 'Ride'}>
                 <Icon size={21} />
               </HatidIconTile>
               <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-            </button>
+            </div>
           ))}
         </div>
         <WalletSummary go={go} />
@@ -304,7 +309,7 @@ function WalletSummary({ go }: { go: (screen: Screen) => void }) {
           <p className="text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>Preview only</p>
         </div>
       </div>
-      <Badge variant="secondary">Ledger-owned later</Badge>
+      <Badge variant="secondary">{HONESTY.walletLedgerOwnedLater}</Badge>
     </button>
   );
 }
@@ -314,9 +319,9 @@ function BookSearch({ go }: { go: (screen: Screen) => void }) {
     <section className="flex h-full flex-col" style={{ background: 'var(--surface-raised)' }}>
       <AppHeader title="Search destination" onBack={() => go('home')} />
       <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--hatid-border)' }}>
-        <InputPin dotColor="var(--hatid-navy)" value="Current location" readOnly />
+        <InputPin dotColor="var(--hatid-navy)" label="Pickup location" value="Current location" readOnly />
         <div className="mt-3">
-          <InputPin dotColor="var(--hatid-primary)" placeholder="Where to?" focused />
+          <InputPin dotColor="var(--hatid-primary)" label="Destination" placeholder="Where to?" focused />
         </div>
       </div>
       <div className="flex-1 p-5">
@@ -332,11 +337,12 @@ function BookSearch({ go }: { go: (screen: Screen) => void }) {
   );
 }
 
-function InputPin({ dotColor, value, placeholder, readOnly, focused }: { dotColor: string; value?: string; placeholder?: string; readOnly?: boolean; focused?: boolean }) {
+function InputPin({ dotColor, label, value, placeholder, readOnly, focused }: { dotColor: string; label: string; value?: string; placeholder?: string; readOnly?: boolean; focused?: boolean }) {
   return (
     <div className="relative flex items-center">
-      <div className="absolute left-[10px] h-2 w-2 rounded-full ring-4 ring-white" style={{ background: dotColor }} />
+      <div aria-hidden="true" className="absolute left-[10px] h-2 w-2 rounded-full ring-4 ring-white" style={{ background: dotColor }} />
       <input
+        aria-label={label}
         value={value}
         readOnly={readOnly}
         placeholder={placeholder}
@@ -369,19 +375,19 @@ function BookChoose({ go, ride, setRide }: { go: (screen: Screen) => void; ride:
             </div>
             <div className="mt-3 flex gap-2">
               <Badge variant="success">Family-safe</Badge>
-              <Badge variant="secondary">Server-priced later</Badge>
+              <Badge variant="secondary">{HONESTY.fareServerPricedLater}</Badge>
             </div>
           </Card>
         </div>
       </MapPreview>
       <div className="relative z-20 -mt-6 flex flex-1 flex-col">
-        <BottomSheet title="Pick the right Hatid" description="Fares and ETAs shown are estimates for prototype review.">
+        <BottomSheet title="Pick the right Hatid" description={HONESTY.fareEstimatesForPrototype}>
           <div className="space-y-3">
             <RideCard id="car" rideType="HatidCar" description="Comfortable city ride" eta="3 mins" capacity="4 seats" fareEstimate="Est. pending" icon={Car} selected={ride === 'car'} onSelect={() => setRide('car')} />
             <RideCard id="moto" rideType="HatidMoto" description="Fast solo trip - helmet workflow later" eta="1 min" capacity="1 seat" fareEstimate="Est. pending" icon={Bike} selected={ride === 'moto'} onSelect={() => setRide('moto')} />
           </div>
           <div className="mt-4" style={{ borderRadius: 'var(--radius-control)', border: '1px solid #D5DFF3', background: 'var(--hatid-navy-soft)', padding: '0.75rem' }}>
-            <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-navy)' }}>Fare, dispatch, driver assignment, and wallet charging must be confirmed by server workflows before real use.</p>
+            <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-navy)' }}>{HONESTY.serverWorkflowsBeforeRealUse}</p>
           </div>
           <Button fullWidth onClick={() => go('book-active')} style={{ marginTop: '1rem' }}>
             Continue demo ride
@@ -401,7 +407,7 @@ function BookActive({ go }: { go: (screen: Screen) => void }) {
             <div>
               <p style={eyebrow}>Active demo trip</p>
               <h3 className="mt-1" style={{ ...heading, fontSize: 'var(--text-heading-size)' }}>Driver is arriving</h3>
-              <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Simulated status - not live dispatch</p>
+              <p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>{HONESTY.dispatchSimulatedStatus}</p>
             </div>
             <Badge variant="info">2 mins</Badge>
           </div>
@@ -423,7 +429,7 @@ function BookActive({ go }: { go: (screen: Screen) => void }) {
             <div style={{ borderRadius: 'var(--radius-control)', border: '1px solid var(--hatid-border)', background: 'var(--surface-muted)', padding: '0.75rem' }}>
               <span style={eyebrow}>Trip state</span>
               <p className="mt-1 text-sm font-black" style={{ color: 'var(--hatid-ink)' }}>Demo only</p>
-              <p className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>Not client-authoritative - server-owned later</p>
+              <p className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{HONESTY.tripStateNotClientAuthoritative}</p>
             </div>
           </div>
           <DriverCard
@@ -433,18 +439,18 @@ function BookActive({ go }: { go: (screen: Screen) => void }) {
             rating={4.9}
             statusLabel="Verification copy demo"
             action={
-              <Button variant="secondary" size="icon" aria-label="Call driver (demo)">
+              <Button variant="secondary" size="icon" disabled aria-label="Call driver (demo only, not available)">
                 <Phone size={18} />
               </Button>
             }
             style={{ marginBottom: '1rem' }}
           />
           <SafetyCard tone="urgent" title="Safety is visual only here" style={{ marginBottom: '1rem' }}>
-            Safety actions are visual only here. Real incident handling needs backend workflow, audit logs, and operator escalation.
+            {HONESTY.safetyVisualOnly}
           </SafetyCard>
           <div className="flex gap-3">
-            <Button variant="outline" fullWidth>Share trip</Button>
-            <Button variant="danger" fullWidth>Safety help</Button>
+            <Button variant="outline" fullWidth disabled>Share trip</Button>
+            <Button variant="danger" fullWidth disabled>Safety help</Button>
           </div>
           <Button variant="link" fullWidth onClick={() => go('book-completed')} style={{ marginTop: '0.75rem', fontSize: 'var(--text-caption)' }}>
             End demo trip
@@ -463,7 +469,7 @@ function Completed({ go }: { go: (screen: Screen) => void }) {
       </div>
       <div className="text-center">
         <h1 className="mt-6" style={heading}>You&apos;ve arrived.</h1>
-        <p style={{ ...bodyMuted, marginLeft: 'auto', marginRight: 'auto' }}>Trip completion is a prototype state. Receipt and fare records must be server-generated.</p>
+        <p style={{ ...bodyMuted, marginLeft: 'auto', marginRight: 'auto' }}>{HONESTY.tripCompletionPrototype}</p>
       </div>
       <Card padding="md" style={{ marginTop: '2rem', background: 'var(--surface-muted)', boxShadow: 'none' }}>
         <div className="flex items-center justify-between">
@@ -475,13 +481,13 @@ function Completed({ go }: { go: (screen: Screen) => void }) {
         </div>
         <div className="mt-4 space-y-3 text-sm">
           <SummaryRow label="Ride type" value="HatidCar" />
-          <SummaryRow label="Payment" value="Not charged" />
-          <SummaryRow label="Fare" value="Server-owned later" last />
+          <SummaryRow label="Payment" value={HONESTY.paymentNotCharged} />
+          <SummaryRow label="Fare" value={HONESTY.fareServerOwnedLater} last />
         </div>
       </Card>
       <div className="mt-8 text-center">
         <p style={{ ...eyebrow, letterSpacing: 'var(--tracking-eyebrow)' }}>Rate demo experience</p>
-        <div className="mt-3 flex justify-center gap-1">
+        <div aria-hidden="true" className="mt-3 flex justify-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star key={star} size={28} fill="var(--hatid-yellow)" color="var(--hatid-yellow)" />
           ))}
@@ -527,7 +533,7 @@ function TripCard({ title, detail }: { title: string; detail: string }) {
 function WalletScreen() {
   return (
     <section className="flex h-full flex-col" style={{ background: 'var(--surface-canvas)' }}>
-      <AppHeader title="Wallet" subtitle="Preview only - no live balance" />
+      <AppHeader title="Wallet" subtitle={HONESTY.walletPreviewOnlySubtitle} />
       <div className="flex-1 space-y-4 overflow-y-auto p-5 pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="p-5" style={{ borderRadius: 'var(--radius-sheet)', background: 'var(--hatid-ink)', color: 'var(--text-inverse)', boxShadow: 'var(--shadow-elevated)' }}>
           <div className="flex items-start justify-between gap-4">
@@ -546,7 +552,7 @@ function WalletScreen() {
         <InfoRow icon={CreditCard} title="Payment methods" detail="GCash, Maya, card, and cash labels stay display-only until PSP and reconciliation rules exist." />
         <InfoRow icon={Wallet} title="No client balance edits" detail="Real wallet balances must come from an auditable ledger, never local app state." />
         <div style={{ borderRadius: 'var(--radius-card)', border: '1px solid var(--hatid-warning-bg)', background: 'var(--hatid-warning-bg)', padding: '1rem' }}>
-          <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-warning)' }}>This wallet screen is safe for prototype review. It does not move, hold, charge, refund, or reconcile money.</p>
+          <p className="text-xs font-bold leading-5" style={{ color: 'var(--hatid-warning)' }}>{HONESTY.walletNoMoneyMovement}</p>
         </div>
       </div>
     </section>
@@ -573,7 +579,7 @@ function SafetyScreen() {
         <InfoRow icon={Shield} title="Share trip" detail="Designed for family visibility once backend trip status, permissions, and delivery channels are active." />
         <InfoRow icon={Phone} title="Safety help" detail="No emergency-response promise until escalation, audit logs, and support staffing exist." />
         <InfoRow icon={HelpCircle} title="Report an issue" detail="Incident reporting should capture evidence, timestamps, participants, and operator resolution states." />
-        <Button variant="danger" fullWidth>Open demo safety actions</Button>
+        <Button variant="danger" fullWidth disabled>Open demo safety actions</Button>
       </div>
     </section>
   );

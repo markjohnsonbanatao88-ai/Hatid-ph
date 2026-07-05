@@ -106,7 +106,7 @@ export function Button({
     ...variantStyle,
     ...SIZES[size],
     ...(fullWidth ? { width: '100%' } : null),
-    ...(disabled ? { opacity: 0.5, pointerEvents: 'none' } : null),
+    ...(disabled ? { opacity: 0.6, pointerEvents: 'none' } : null),
     ...(hover && hoverBg && hoverBg !== 'transparent' ? { background: hoverBg } : null),
     ...(hover && variant === 'link' ? { textDecoration: 'underline' } : null),
     ...style,
