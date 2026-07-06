@@ -1,16 +1,24 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const trackedFiles = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
-  .split(/\r?\n/)
-  .filter(Boolean);
+const rootTextFiles = [
+  'package.json',
+  'package-lock.json',
+];
 
-const failures = [];
+const rootTextPatterns = [
+  /^tsconfig[^/]*\.json$/u,
+  /^next\.config\.[^.]+$/u,
+  /^eslint\.config\.[^.]+$/u,
+  /^postcss\.config\.[^.]+$/u,
+  /^tailwind\.config\.[^.]+$/u,
+  /^vitest\.config\.[^.]+$/u,
+  /^playwright\.config\.[^.]+$/u,
+];
 
-function addFailure(title, details) {
-  failures.push({ title, details });
-}
+const textContentExtensions = /\.(cjs|css|js|jsx|json|md|mjs|sql|ts|tsx|txt|yaml|yml)$/u;
 
 function normalized(filePath) {
   return filePath.replace(/\\/g, '/');
@@ -69,14 +77,31 @@ function isForbiddenArtifact(filePath) {
   return false;
 }
 
-function shouldScanContent(filePath) {
+export function shouldScanContent(filePath) {
   const file = normalized(filePath);
+  const lower = file.toLocaleLowerCase('en-US');
 
-  if (!/^(src|docs|tests)\//u.test(file)) {
-    return false;
+  if (rootTextFiles.includes(lower)) {
+    return true;
   }
 
-  return /\.(cjs|css|js|jsx|json|md|mjs|sql|ts|tsx|txt|yaml|yml)$/u.test(file);
+  if (!file.includes('/') && rootTextPatterns.some((pattern) => pattern.test(lower))) {
+    return true;
+  }
+
+  if (/^scripts\/.+\.(js|mjs)$/u.test(lower)) {
+    return true;
+  }
+
+  if (/^\.github\/.+\.(md|ya?ml)$/u.test(lower)) {
+    return true;
+  }
+
+  if (/^(src|docs|tests)\//u.test(file) && textContentExtensions.test(lower)) {
+    return true;
+  }
+
+  return false;
 }
 
 function formatLocation(buffer, index) {
@@ -125,47 +150,64 @@ function findHiddenCharacters(filePath) {
   return findings;
 }
 
-const caseCollisions = findCaseCollisions(trackedFiles);
-if (caseCollisions.length > 0) {
-  addFailure(
-    'Tracked paths differ only by case',
-    caseCollisions.map((entries) => `- ${entries.join('\n  ')}`),
-  );
-}
+function run() {
+  const trackedFiles = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
+    .split(/\r?\n/)
+    .filter(Boolean);
 
-const forbiddenArtifacts = trackedFiles.filter(isForbiddenArtifact);
-if (forbiddenArtifacts.length > 0) {
-  addFailure(
-    'Forbidden tracked artifact or secret-like path',
-    forbiddenArtifacts.map((file) => `- ${file}`),
-  );
-}
+  const failures = [];
 
-if (
-  trackedFiles.includes('.github/PULL_REQUEST_TEMPLATE.md') &&
-  trackedFiles.includes('.github/pull_request_template.md')
-) {
-  addFailure('Both PR template case variants are tracked', [
-    '- .github/PULL_REQUEST_TEMPLATE.md',
-    '- .github/pull_request_template.md',
-  ]);
-}
-
-const hiddenCharacterFindings = trackedFiles
-  .filter(shouldScanContent)
-  .flatMap((file) => findHiddenCharacters(file));
-
-if (hiddenCharacterFindings.length > 0) {
-  addFailure('Hidden or dangerous control characters found', hiddenCharacterFindings);
-}
-
-if (failures.length > 0) {
-  console.error('Repository hygiene check failed.');
-  for (const failure of failures) {
-    console.error(`\n${failure.title}:`);
-    for (const detail of failure.details) {
-      console.error(detail);
-    }
+  function addFailure(title, details) {
+    failures.push({ title, details });
   }
-  process.exit(1);
+
+  const caseCollisions = findCaseCollisions(trackedFiles);
+  if (caseCollisions.length > 0) {
+    addFailure(
+      'Tracked paths differ only by case',
+      caseCollisions.map((entries) => `- ${entries.join('\n  ')}`),
+    );
+  }
+
+  const forbiddenArtifacts = trackedFiles.filter(isForbiddenArtifact);
+  if (forbiddenArtifacts.length > 0) {
+    addFailure(
+      'Forbidden tracked artifact or secret-like path',
+      forbiddenArtifacts.map((file) => `- ${file}`),
+    );
+  }
+
+  if (
+    trackedFiles.includes('.github/PULL_REQUEST_TEMPLATE.md') &&
+    trackedFiles.includes('.github/pull_request_template.md')
+  ) {
+    addFailure('Both PR template case variants are tracked', [
+      '- .github/PULL_REQUEST_TEMPLATE.md',
+      '- .github/pull_request_template.md',
+    ]);
+  }
+
+  const hiddenCharacterFindings = trackedFiles
+    .filter(shouldScanContent)
+    .flatMap((file) => findHiddenCharacters(file));
+
+  if (hiddenCharacterFindings.length > 0) {
+    addFailure('Hidden or dangerous control characters found', hiddenCharacterFindings);
+  }
+
+  if (failures.length > 0) {
+    console.error('Repository hygiene check failed.');
+    for (const failure of failures) {
+      console.error(`\n${failure.title}:`);
+      for (const detail of failure.details) {
+        console.error(detail);
+      }
+    }
+    process.exit(1);
+  }
+}
+
+const invokedPath = process.argv[1] ? fileURLToPath(new URL(`file://${path.resolve(process.argv[1])}`)) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  run();
 }
