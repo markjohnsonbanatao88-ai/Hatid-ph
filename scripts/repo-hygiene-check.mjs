@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { pathToFileURL } from 'node:url';
 
 const rootTextFiles = [
   'package.json',
@@ -207,7 +207,7 @@ function run() {
   }
 }
 
-const invokedPath = process.argv[1] ? fileURLToPath(new URL(`file://${path.resolve(process.argv[1])}`)) : '';
-if (invokedPath === fileURLToPath(import.meta.url)) {
+const invokedUrl = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+if (invokedUrl === import.meta.url) {
   run();
 }
