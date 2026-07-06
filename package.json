@@ -10,6 +10,7 @@
     "build": "cross-env NODE_ENV=production next build",
     "start": "next start",
     "lint": "eslint .",
+    "repo:hygiene": "node scripts/repo-hygiene-check.mjs",
     "typecheck": "tsc --noEmit",
     "test": "rimraf .tmp-tests && tsc -p tsconfig.test.json && node --test .tmp-tests/tests/*.test.js",
     "audit:high": "npm audit --audit-level=high",

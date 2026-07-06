@@ -17,6 +17,7 @@ The repo has a Next.js UI shell and client-facing prototype infrastructure, but 
 - CI now includes hard-blocking Supabase database validation through `npm run db:test`; database failures must not be made report-only.
 - Dependency hardening has reduced the audit count from 28 moderate vulnerabilities to 25 moderate vulnerabilities. `npm run audit:high` still exits 0 at the high threshold, but plain `npm audit` remains nonzero and must be tracked before production readiness.
 - Branch protection and required checks are documented in `docs/28_BRANCH_PROTECTION_AND_REQUIRED_CHECKS.md`, but this documentation does not prove GitHub settings are enabled.
+- The canonical PR template path is `.github/PULL_REQUEST_TEMPLATE.md`; the lowercase duplicate path was removed from Git tracking. `npm run repo:hygiene` now blocks case-colliding tracked paths, obvious committed artifacts, and dangerous hidden/control characters in source, docs, and tests.
 
 ## What is real
 
